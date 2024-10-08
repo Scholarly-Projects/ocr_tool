@@ -2,18 +2,22 @@ import os
 import subprocess
 from pathlib import Path
 from PIL import Image
+from pdf2image import convert_from_path
 
 # Function to clear existing OCR (if needed)
 def clear_existing_ocr(file_path):
     # This function would typically require more complex logic to manipulate existing OCR
     # For simplicity, we will assume that we are creating a new file without OCR instead
-    if file_path.suffix.lower() in ['.pdf', '.tiff', '.tif', '.jpeg', '.jpg']:
-        return True  # In a real scenario, you might need to handle the file differently
+    return file_path.suffix.lower() in ['.pdf', '.tiff', '.tif', '.jpeg', '.jpg']
 
 # Function to perform OCR on the image or PDF file
 def perform_ocr(input_file, output_file):
     # Call Tesseract OCR
     try:
+        # If output is a PDF, add .pdf extension
+        if output_file.suffix.lower() == '.pdf':
+            output_file = output_file.with_suffix('.pdf')
+
         subprocess.run(['tesseract', str(input_file), str(output_file.stem), '--oem', '3', '--psm', '6'], check=True)
         print(f"OCR completed for {input_file} and saved to {output_file}.")
     except subprocess.CalledProcessError as e:
@@ -42,7 +46,6 @@ def process_files(input_folder, output_folder):
 
 def convert_pdf_to_images(pdf_file):
     # Use Pillow to convert PDF to images
-    from pdf2image import convert_from_path
     images = convert_from_path(pdf_file)
     image_files = []
 
@@ -56,6 +59,8 @@ def convert_pdf_to_images(pdf_file):
 
 if __name__ == "__main__":
     # Define your input and output folders
-    input_folder = "A"
-    output_folder = "B"
+    base_folder = Path("OCR")
+    input_folder = base_folder / "A"
+    output_folder = base_folder / "B"
+
     process_files(input_folder, output_folder)
